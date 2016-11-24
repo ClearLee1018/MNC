@@ -8,7 +8,8 @@
 import cv2
 import numpy as np
 import yaml
-
+import os
+import random
 import caffe
 from mnc_config import cfg
 from utils.blob import prep_im_for_blob, im_list_to_blob
@@ -95,6 +96,7 @@ class MNCDataLayer(caffe.Layer):
         im_scales = []
         for i in xrange(num_images):
             im = cv2.imread(roidb['image'])
+            #print 'image_size = {}'.format(im.shape[:2])
             if roidb['flipped']:
                 im = im[:, ::-1, :]
             target_size = cfg.TRAIN.SCALES[scale_inds[i]]
@@ -124,13 +126,15 @@ class MNCDataLayer(caffe.Layer):
         gt_label = np.where(roidb['gt_classes'] != 0)[0]
         gt_boxes = np.hstack((roidb['boxes'][gt_label, :] * im_scales[0],
                               roidb['gt_classes'][gt_label, np.newaxis])).astype(np.float32)
+        
         blobs = {
             'data': im_blob,
-            'gt_boxes': gt_boxes,
+        #    'gt_boxes': gt_boxes,
             'im_info': np.array([[im_blob.shape[2], im_blob.shape[3], im_scales[0]]], dtype=np.float32)
         }
-
+        
         if cfg.MNC_MODE:
+            #print 'cfg.MNC_MODE is on'
             maskdb = self._maskdb[db_inds]
             mask_list = maskdb['gt_masks']
             mask_max_x = maskdb['mask_max'][0]
@@ -144,7 +148,24 @@ class MNCDataLayer(caffe.Layer):
                 gt_masks[j, 0:mask_y, 0:mask_x] = mask
                 mask_info[j, 0] = mask_y
                 mask_info[j, 1] = mask_x
-            blobs['gt_masks'] = gt_masks
-            blobs['mask_info'] = mask_info
-
+            #print 'mask_list:{}'.format(len(mask_list))
+            qlen = 20
+            if len(mask_list) > qlen:
+            # add this to random choose the mask to train, because too many mask will lead to out of memory error
+            	index_list = range(1,len(mask_list))
+                #print '{}'.format(index_list)
+            	select_index = random.sample(index_list,qlen)
+		#print '{}'.format(select_index)
+            	blobs['gt_masks'] = gt_masks[select_index,:,:]
+            	blobs['mask_info'] = mask_info[select_index,:]
+            	blobs['gt_boxes'] = gt_boxes[select_index,:]
+            else:
+		blobs['gt_masks'] = gt_masks
+		blobs['mask_info'] = mask_info
+		blobs['gt_boxes'] = gt_boxes
+	#print 'blobs len:{}'.format(len(blobs))
+        #print 'blobs gt_masks:{},{},{}'.format(blobs['gt_masks'].shape[0],blobs['gt_masks'].shape[1],blobs['gt_masks'].shape[2])
+        #print 'blobs mask_info:{}'.format(blobs['mask_info'].shape[0])
+	#print 'blobs data:{},{},{}'.format(im_blob.shape[0],im_blob.shape[1],im_blob.shape[2])
+  	#print 'blobs gt_boxes:{}'.format(gt_boxes.shape[0])
         return blobs

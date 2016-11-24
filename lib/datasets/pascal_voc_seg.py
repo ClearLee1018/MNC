@@ -37,6 +37,7 @@ class PascalVOCSeg(PascalVOCDet):
         self._roidb_path = os.path.join(self.cache_path, 'voc_2012_' + image_set + '_mcg_maskdb')
 
     def image_path_at(self, i):
+        self._image_ext = '.tif'
         image_path = os.path.join(self._data_path, 'img', self._image_index[i] + self._image_ext)
         assert os.path.exists(image_path), 'Path does not exist: {}'.format(image_path)
         return image_path

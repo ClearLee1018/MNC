@@ -125,7 +125,6 @@ if __name__ == '__main__':
 
     caffe.set_mode_gpu()
     caffe.set_device(args.gpu_id)
-    cfg.GPU_ID = args.gpu_id
     net = caffe.Net(test_prototxt, test_model, caffe.TEST)
 
     # Warm up for the first two images
@@ -171,21 +170,21 @@ if __name__ == '__main__':
         im = cv2.imread(superimpose_name)
 
         im = im[:, :, (2, 1, 0)]
-        fig, ax = plt.subplots(figsize=(12, 12))
-        ax.imshow(im, aspect='equal')
-        classes = pred_dict['cls_name']
-        for i in xrange(len(classes)):
-            score = pred_dict['boxes'][i][-1]
-            bbox = pred_dict['boxes'][i][:4]
-            cls_ind = classes[i] - 1
-            ax.text(bbox[0], bbox[1] - 8,
-                '{:s} {:.4f}'.format(CLASSES[cls_ind], score),
-                bbox=dict(facecolor='blue', alpha=0.5),
-                fontsize=14, color='white')
-        plt.axis('off')
-        plt.tight_layout()
-        plt.draw()
+        #fig, ax = plt.subplots(figsize=(12, 12))
+        #ax.imshow(im, aspect='equal')
+        #classes = pred_dict['cls_name']
+        #for i in xrange(len(classes)):
+        #    score = pred_dict['boxes'][i][-1]
+        #    bbox = pred_dict['boxes'][i][:4]
+        #    cls_ind = classes[i] - 1
+        #    ax.text(bbox[0], bbox[1] - 8,
+        #        '{:s} {:.4f}'.format(CLASSES[cls_ind], score),
+        #        bbox=dict(facecolor='blue', alpha=0.5),
+        #        fontsize=14, color='white')
+        #plt.axis('off')
+        #plt.tight_layout()
+        #plt.draw()
 
-        fig.savefig(os.path.join(demo_dir, im_name[:-4]+'.png'))
-        os.remove(superimpose_name)
-        os.remove(target_cls_file)
+        #fig.savefig(os.path.join(demo_dir, im_name[:-4]+'.png'))
+        #os.remove(superimpose_name)
+        #os.remove(target_cls_file)

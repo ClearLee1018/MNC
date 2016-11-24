@@ -33,27 +33,38 @@ class ProposalTargetLayer(caffe.Layer):
         self._top_name_map = {}
         top[0].reshape(1, 5)
         self._top_name_map['rois'] = 0
-        top[1].reshape(1, 1)
-        self._top_name_map['labels'] = 1
-        top[2].reshape(1, self._num_classes * 4)
-        self._top_name_map['bbox_targets'] = 2
-        top[3].reshape(1, self._num_classes * 4)
-        self._top_name_map['bbox_inside_weights'] = 3
-        top[4].reshape(1, self._num_classes * 4)
-        self._top_name_map['bbox_outside_weights'] = 4
-        # Add mask-related information
-        if cfg.MNC_MODE:
-            top[5].reshape(1, 1, cfg.MASK_SIZE, cfg.MASK_SIZE)
-            self._top_name_map['mask_targets'] = 5
-            top[6].reshape(1, 1, cfg.MASK_SIZE, cfg.MASK_SIZE)
-            self._top_name_map['mask_weight'] = 6
-            top[7].reshape(1, 4)
-            self._top_name_map['gt_masks_info'] = 7
-            if cfg.TRAIN.MIX_INDEX:
-                top[8].reshape(1, 4)
-                self._top_name_map['fg_inds'] = 8
-                top[9].reshape(1, 4)
-                self._top_name_map['bg_inds'] = 9
+        top[1].reshape(1, 1, cfg.MASK_SIZE, cfg.MASK_SIZE)
+        self._top_name_map['mask_targets'] = 1
+        top[2].reshape(1, 1, cfg.MASK_SIZE, cfg.MASK_SIZE)
+        self._top_name_map['mask_weight'] = 2
+        top[3].reshape(1, 4)
+        self._top_name_map['gt_masks_info'] = 3
+        if cfg.TRAIN.MIX_INDEX:
+            top[4].reshape(1, 4)
+            self._top_name_map['fg_inds'] = 4
+            top[5].reshape(1, 4)
+            self._top_name_map['bg_inds'] = 5
+        #top[1].reshape(1, 1)
+        #self._top_name_map['labels'] = 1
+        #top[2].reshape(1, self._num_classes * 4)
+        #self._top_name_map['bbox_targets'] = 2
+        #top[3].reshape(1, self._num_classes * 4)
+        #self._top_name_map['bbox_inside_weights'] = 3
+        #top[4].reshape(1, self._num_classes * 4)
+        #self._top_name_map['bbox_outside_weights'] = 4
+        ## Add mask-related information
+        #if cfg.MNC_MODE:
+        #    top[5].reshape(1, 1, cfg.MASK_SIZE, cfg.MASK_SIZE)
+        #    self._top_name_map['mask_targets'] = 5
+        #    top[6].reshape(1, 1, cfg.MASK_SIZE, cfg.MASK_SIZE)
+        #    self._top_name_map['mask_weight'] = 6
+        #    top[7].reshape(1, 4)
+        #    self._top_name_map['gt_masks_info'] = 7
+        #    if cfg.TRAIN.MIX_INDEX:
+        #        top[8].reshape(1, 4)
+        #        self._top_name_map['fg_inds'] = 8
+        #        top[9].reshape(1, 4)
+        #        self._top_name_map['bg_inds'] = 9
 
     def reshape(self, bottom, top):
         """Reshaping happens during the call to forward."""
@@ -169,13 +180,7 @@ def _sample_rois(all_rois, gt_boxes, rois_per_image, num_classes, gt_masks, im_s
         bbox_target_data, num_classes)
     bbox_outside_weights = np.array(bbox_inside_weights > 0).astype(np.float32)
 
-    blobs = {
-        'rois': rois,
-        'labels': labels,
-        'bbox_targets': bbox_targets,
-        'bbox_inside_weights': bbox_inside_weights,
-        'bbox_outside_weights': bbox_outside_weights
-    }
+    blobs = {'rois': rois}
 
     if cfg.MNC_MODE:
         scaled_rois = rois[:, 1:5] / float(im_scale)
