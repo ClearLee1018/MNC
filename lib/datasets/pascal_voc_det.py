@@ -26,8 +26,11 @@ class PascalVOCDet(PascalVOC):
         PascalVOC.__init__(self, 'voc_' + year + '_' + image_set)
         self._year = year
         self._image_set = image_set
+        print '~~~~~~~~~~~>>>>>>>> devkit_path',devkit_path
         self._devkit_path = self._get_default_path() if devkit_path is None else devkit_path
-        self._data_path = os.path.join(self._devkit_path, 'VOC' + self._year) if 'SDS' not in self._devkit_path else self._devkit_path
+        print '~~~~~~~~~~~>>>>>>>> selg._devkit_path',self._devkit_path
+        #self._data_path = os.path.join(self._devkit_path, 'VOC' + self._year) if 'SDS' not in self._devkit_path else self._devkit_path
+        self._data_path = os.path.join(self._devkit_path) if 'SDS' not in self._devkit_path else self._devkit_path
         self._classes = ('__background__',  # always index 0
                          'aeroplane', 'bicycle', 'bird', 'boat',
                          'bottle', 'bus', 'car', 'cat', 'chair',
@@ -50,16 +53,16 @@ class PascalVOCDet(PascalVOC):
                        'matlab_eval': False,
                        'rpn_file': None}
 
-        assert os.path.exists(self._devkit_path), \
-            'VOCdevkit path does not exist: {}'.format(self._devkit_path)
-        assert os.path.exists(self._data_path), \
-            'Path does not exist: {}'.format(self._data_path)
+        assert os.path.exists(os.path.join(os.path.dirname(cfg.DATA_DIR),self._devkit_path)), \
+            'VOCdevkit path does not exist: {}'.format(os.path.join(os.path.dirname(cfg.DATA_DIR),self._devkit_path))
+        assert os.path.exists(os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path)), \
+            'Path does not exist: {}'.format(os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path))
 
     def image_path_at(self, i):
         return self.image_path_from_index(self._image_index[i])
 
     def image_path_from_index(self, index):
-        image_path = os.path.join(self._data_path, 'JPEGImages',
+        image_path = os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path, 'JPEGImages',
                                   index + self._image_ext)
         assert os.path.exists(image_path), \
             'Path does not exist: {}'.format(image_path)
@@ -116,7 +119,7 @@ class PascalVOCDet(PascalVOC):
             print '{} gt flipped roidb loaded from {}'.format(self.name, cache_file)
         else:
             num_images = self.num_images
-            widths = [PIL.Image.open(self.image_path_at(i)).size[0]
+            widths = [PIL.Image.open(os.path.join(os.path.dirname(cfg.DATA_DIR),self.image_path_at(i))).size[0]
                       for i in xrange(num_images)]
             flip_roidb = []
             for i in xrange(num_images):
@@ -191,14 +194,14 @@ class PascalVOCDet(PascalVOC):
     def _load_sbd_annotations(self, index):
         if index % 1000 == 0: print '%d / %d' % (index, len(self._image_index))
         image_name = self._image_index[index]
-        inst_file_name = os.path.join(self._data_path, 'inst', image_name + '.mat')
+        inst_file_name = os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path, 'inst', image_name + '.mat')
         gt_inst_mat = scipy.io.loadmat(inst_file_name)
         gt_inst_data = gt_inst_mat['GTinst']['Segmentation'][0][0]
         unique_inst = np.unique(gt_inst_data)
         background_ind = np.where(unique_inst == 0)[0]
         unique_inst = np.delete(unique_inst, background_ind)
 
-        cls_file_name = os.path.join(self._data_path, 'cls', image_name + '.mat')
+        cls_file_name = os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path, 'cls', image_name + '.mat')
         gt_cls_mat = scipy.io.loadmat(cls_file_name)
         gt_cls_data = gt_cls_mat['GTcls']['Segmentation'][0][0]
 

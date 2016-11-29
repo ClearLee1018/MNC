@@ -38,7 +38,7 @@ class PascalVOCSeg(PascalVOCDet):
 
     def image_path_at(self, i):
         self._image_ext = '.tif'
-        image_path = os.path.join(self._data_path, 'img', self._image_index[i] + self._image_ext)
+        image_path = os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path, 'img', self._image_index[i] + self._image_ext)
         assert os.path.exists(image_path), 'Path does not exist: {}'.format(image_path)
         return image_path
 
@@ -67,7 +67,8 @@ class PascalVOCSeg(PascalVOCDet):
         return gt_maskdb
 
     def _load_image_set_index(self):
-        image_set_file = os.path.join(self._data_path, self._image_set + '.txt')
+        image_set_file = os.path.join( os.path.dirname(cfg.DATA_DIR),self._data_path, self._image_set + '.txt')
+        print '~~~~~~~~~~~~~~~~~~~~ root_dir >>', image_set_file
         assert os.path.exists(image_set_file), 'Path does not exist: {}'.format(image_set_file)
         with open(image_set_file) as f:
             image_index = [x.strip() for x in f.readlines()]
@@ -80,14 +81,14 @@ class PascalVOCSeg(PascalVOCDet):
         if index % 1000 == 0:
             print '%d / %d' % (index, len(self._image_index))
         image_name = self._image_index[index]
-        inst_file_name = os.path.join(self._data_path, 'inst', image_name + '.mat')
+        inst_file_name = os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path, 'inst', image_name + '.mat')
         gt_inst_mat = scipy.io.loadmat(inst_file_name)
         gt_inst_data = gt_inst_mat['GTinst']['Segmentation'][0][0]
         unique_inst = np.unique(gt_inst_data)
         background_ind = np.where(unique_inst == 0)[0]
         unique_inst = np.delete(unique_inst, background_ind)
         gt_roidb = gt_roidbs[index]
-        cls_file_name = os.path.join(self._data_path, 'cls', image_name + '.mat')
+        cls_file_name = os.path.join(os.path.dirname(cfg.DATA_DIR),self._data_path, 'cls', image_name + '.mat')
         gt_cls_mat = scipy.io.loadmat(cls_file_name)
         gt_cls_data = gt_cls_mat['GTcls']['Segmentation'][0][0]
         gt_masks = []
